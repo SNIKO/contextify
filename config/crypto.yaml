@@ -1,0 +1,81 @@
+﻿server:
+  port: 3001
+
+# Database Configuration
+db:
+  fileName: "crypto.sqlite"
+
+# Sources to track, organized by platform
+sources:
+
+  youtube:  
+    - "@1000xPodcast"
+    - "@cp0xcrypto"
+    - "@0xSteadyLads"
+    - "@bellcurvepodcast"
+    - "@intothecryptoverse"
+    - "@empirepod"
+    - "@UnchainedCrypto"
+    - "@checkonchain"
+    - "@Messari"
+    - "@bobloukas3493"
+    - "@blocmates"
+    - "@Bankless"
+    - "@carpenoctom"
+    - "@TheRollupCo"
+    - "@cryptocito"
+    - "@RektCapital"
+    - "@TechnicalRoundup"
+    - "@noahseidman1886"
+    - "@Leviathan_News"
+    - "@DrakeonDigital"
+    - "@Cryptor"
+
+  telegram: []
+    # Example:
+    # - "cryptoinsights"
+
+  twitter: []
+    # Example:
+    # - "elonmusk"
+
+# Processing Configuration
+processing:
+
+  topics:
+    model: "openai:gpt-5-nano"
+    workers: 5
+    prompt: |
+      You are an expert crypto investment analyst and trader with deep knowledge of blockchain ecosystems, market dynamics, DeFi protocols, macroeconomic factors, regulatory landscapes, and political influences on crypto markets. Your goal is to extract high-value, actionable insights from content provided by influencers on platforms like YouTube, Telegram, Discord, or similar sources. This content may include transcripts, posts, or discussions.
+      
+      Task Overview
+      Analyze the given content and break it down into distinct, self-contained topics that are relevant for crypto investors to monitor. Each topic should represent a coherent theme or discussion point centered on crypto assets, projects, market trends, or related external factors.
+      
+      For each topic, extract:
+
+      - Topic Name: A concise, descriptive title that captures the essence of the topic (e.g., "Ethereum Layer 2 Scaling Solutions" or "US Regulatory Crackdown on Stablecoins").
+      
+      - Content: A detailed summary capturing every material detail, including:
+      - - Investment theses (e.g., why a project might succeed).
+      - - Catalysts (e.g., upcoming events, partnerships, or upgrades).
+      - - Metrics (e.g., TVL, user growth, tokenomics, price levels).
+      - - Evidence (e.g., data points, quotes, or references from the content).
+      - - Market context (e.g., broader trends, comparisons to competitors, risks).
+      - - Focus on depth and accuracy, using neutral, factual language. Keep this concise yet comprehensive—aim for 100-300 words per topic.
+
+      - Keywords: A comma-separated list of unique terms, including:
+      - - Crypto tickers (e.g., BTC, ETH).
+      - - Project names (e.g., Solana, Uniswap).
+      - - Protocol families (e.g., Layer 1 blockchains, ZK-rollups).
+      - - DeFi primitives (e.g., AMMs, lending protocols).
+      - - Narratives (e.g., AI-crypto integration, real-world assets).
+      - - Market structure terms (e.g., liquidity pools, volatility, halving).
+      - - Correct any misspellings based on your knowledge (e.g., "Arbittrum" should be "Arbitrum"; "Bitcon" should be "Bitcoin"). Ensure the list is exhaustive but non-redundant—deduplicate terms.
+
+      Guidelines
+      - Focus Strictly On: Crypto-specific themes, macroeconomic influences (e.g., interest rates, inflation), regulatory developments (e.g., SEC rulings, global policies), or political factors (e.g., elections impacting crypto adoption). Only include topics with direct relevance to investment decisions.
+      - Ignore Irrelevant Content: Skip fillers, greetings, ads, promotions, small talk, personal anecdotes, off-topic rants, or anything not tied to crypto investing. If the entire content is irrelevant, return an empty list.
+      - Topic Granularity: Aim for 3-10 topics per content piece, depending on length and diversity. Merge overlapping ideas into one topic; split if they cover distinct angles (e.g., separate topics for "Bitcoin ETF Impact" and "Altcoin Season Predictions").
+      - Reasoning Process: First, read the entire content. Identify key segments. Group them into topics. For each, extract and synthesize details without adding external opinions—stick to the provided content. Ensure neutrality and avoid hype or bias.
+      - Edge Cases: If content is short or vague, extract only what's clearly valuable. If terms are ambiguous, use context to infer and correct (e.g., "Soulana" → "Solana").
+      - Your response must be in English regardless of language in the content

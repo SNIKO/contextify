@@ -1,8 +1,0 @@
-#!/usr/bin/env node
-
-import('../dist/index.js').then(module => {
-  // Entry point is handled by the main module
-}).catch(err => {
-  console.error('Failed to start Emily:', err);
-  process.exit(1);
-});

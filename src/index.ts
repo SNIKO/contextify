@@ -1,89 +1,61 @@
-#!/usr/bin/env node
+﻿import { Logger } from './utils/logger.js';
+import { DataIngestionService } from './services/data-ingestion.js';
+import { TopicGenerationService } from './services/topic-generation.js';
+import { SQLiteStorage } from './storage/sqlite.js';
+import { CryptoInsightsMcpServer } from './mcp/server.js';
+import { loadConfig } from './config/config.js';
+import { LlmModelFactory } from './llm/factory.js';
+import { resolve } from 'path';
 
-import { parseArgs } from 'node:util';
-import { logger } from './utils/logger.js';
-import { greetCommand } from './commands/greet.js';
+const logger = new Logger('Main');
 
-interface CommandArgs {
-  command: string | undefined;
-  name: string | undefined;
-  verbose: boolean | undefined;
-  help: boolean | undefined;
-}
-
-function showHelp(): void {
-  console.log(`
-Emily - A TypeScript Console Application
-
-Usage: emily [command] [options]
-
-Commands:
-  greet [name]    Greet someone (default: World)
-
-Options:
-  -v, --verbose   Enable verbose logging
-  -h, --help      Show this help message
-
-Examples:
-  emily greet
-  emily greet Alice
-  emily greet --verbose
-`);
-}
-
-function main(): void {
+async function main(): Promise<void> {
   try {
-    const { values, positionals } = parseArgs({
-      args: process.argv.slice(2),
-      options: {
-        verbose: {
-          type: 'boolean',
-          short: 'v',
-        },
-        help: {
-          type: 'boolean',
-          short: 'h',
-        },
-      },
-      allowPositionals: true,
-    });
+    logger.info('🚀 Starting');
 
-    const args: CommandArgs = {
-      command: positionals[0],
-      name: positionals[1],
-      verbose: values.verbose,
-      help: values.help,
+    const configPath = resolve(process.cwd(), 'config/crypto.yaml');
+    const config = loadConfig(configPath);
+    logger.info('✅ Configuration loaded successfully');
+
+    const sqliteStorage = new SQLiteStorage(config.db.fileName);
+    await sqliteStorage.initialize();
+
+    const dataIngestionService = new DataIngestionService(sqliteStorage);
+    dataIngestionService.initializeFromConfig(config);
+    dataIngestionService.start();
+
+    const llmFactory = new LlmModelFactory(config);
+    const topicService = new TopicGenerationService(sqliteStorage, llmFactory, config);
+
+    topicService.start();
+
+    const mcpServer = new CryptoInsightsMcpServer(sqliteStorage, config.server.port);
+    await mcpServer.start();
+
+    logger.info('🎉 All services started successfully!');
+
+    const gracefulShutdown = async (signal: string) => {
+      logger.info(`\n🛑 Received ${signal} - shutting down gracefully...`);
+
+      try {
+        logger.info('Stopping services');
+        dataIngestionService.stop();
+        topicService.stop();
+        await sqliteStorage.close();
+        logger.info('Graceful shutdown complete');
+        process.exit(0);
+      } catch (error) {
+        logger.error('Error during shutdown:', error);
+        process.exit(1);
+      }
     };
 
-    if (args.verbose) {
-      logger.setLevel('debug');
-    }
-
-    if (args.help) {
-      showHelp();
-      return;
-    }
-
-    logger.debug('Starting Emily application', { args });
-
-    switch (args.command) {
-      case 'greet':
-        greetCommand(args.name || 'World');
-        break;
-      case undefined:
-        logger.info('Welcome to Emily! Use --help for available commands.');
-        break;
-      default:
-        logger.error(`Unknown command: ${args.command}`);
-        logger.info('Use --help to see available commands.');
-        process.exit(1);
-    }
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
   } catch (error) {
-    logger.error('Application error:', error);
+    logger.error(`💥 Failed to start services: ${error instanceof Error ? error.message : 'Unknown error'}`);
     process.exit(1);
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main();
-}
+main();
