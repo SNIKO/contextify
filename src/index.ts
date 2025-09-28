@@ -13,7 +13,7 @@ async function main(): Promise<void> {
   try {
     logger.info('🚀 Starting');
 
-    const configPath = resolve(process.cwd(), 'config/crypto.yaml');
+    const configPath = resolve(process.cwd(), 'config/realestate.yaml');
     const config = loadConfig(configPath);
     logger.info('✅ Configuration loaded successfully');
 

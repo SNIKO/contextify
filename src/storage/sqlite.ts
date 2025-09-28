@@ -331,6 +331,60 @@ export class SQLiteStorage {
     }));
   }
 
+  getTopicsByIds(topicIds: number[]): Array<{
+    topicId: number;
+    topicTitle: string;
+    content: string;
+    account: string;
+    source: string;
+    publishDate: Date;
+    subscriberCount: number | null;
+  }> {
+    if (topicIds.length === 0) {
+      return [];
+    }
+
+    const database = this.ensureDb();
+    const placeholders = topicIds.map(() => '?').join(',');
+    const statement = database.prepare(
+      `
+        SELECT
+          t.id AS topic_id,
+          t.name AS topic_title,
+          t.content,
+          rc.account,
+          rc.source,
+          rc.publish_date,
+          cm.subscriber_count
+        FROM topics t
+        INNER JOIN raw_content rc ON rc.id = t.raw_content_id
+        LEFT JOIN channel_metadata cm
+          ON cm.account_name = rc.account AND cm.source = rc.source
+        WHERE t.id IN (${placeholders})
+      `
+    );
+
+    const rows = statement.all(...topicIds) as Array<{
+      topic_id: number;
+      topic_title: string;
+      content: string;
+      account: string;
+      source: string;
+      publish_date: string;
+      subscriber_count: number | null;
+    }>;
+
+    return rows.map(row => ({
+      topicId: row.topic_id,
+      topicTitle: row.topic_title,
+      content: row.content,
+      account: row.account,
+      source: row.source,
+      publishDate: new Date(row.publish_date),
+      subscriberCount: row.subscriber_count ?? null
+    }));
+  }
+
   private resetInFlightRawContent(): void {
     const database = this.ensureDb();
     const { changes } = database

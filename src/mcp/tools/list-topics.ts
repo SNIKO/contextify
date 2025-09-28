@@ -6,7 +6,7 @@ import { SQLiteStorage } from '../../storage/sqlite.js';
 
 type TopicMention = ReturnType<SQLiteStorage['getTopicsByDateRange']>[number];
 
-export class GetTopicsTool extends BaseTool {
+export class ListTopics extends BaseTool {
   private storage: SQLiteStorage;
 
   constructor(storage: SQLiteStorage) {
@@ -19,7 +19,7 @@ export class GetTopicsTool extends BaseTool {
       'get-topics',
       {
         description:
-          'List all topics mentioned in content published during the last N days, including account and platform details.',
+          'Use this tool to list all topics mentioned in content published during the last N days.',
         inputSchema: z
           .object({
             days: z
@@ -40,8 +40,8 @@ export class GetTopicsTool extends BaseTool {
     );
   }
 
-  private async handle(args: { days?: number; account?: string }): Promise<CallToolResult> {
-    const days = args.days ?? 7;
+  private async handle(args: { days: number; account?: string | undefined }): Promise<CallToolResult> {
+    const days = args.days;
     const rawAccount = args.account?.trim();
     const strippedAccount = rawAccount ? rawAccount.replace(/^@+/, '') : undefined;
     const normalizedAccount = strippedAccount && strippedAccount.length > 0

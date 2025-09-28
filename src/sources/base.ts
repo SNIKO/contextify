@@ -2,20 +2,21 @@
 import { Logger } from '../utils/logger.js';
 
 export abstract class Fetcher {
-  private START_DATE = new Date('2025-09-01');
+  private startDate: Date
   protected storage: SQLiteStorage;
   protected abstract logger: Logger;
 
-  constructor(storage: SQLiteStorage) {
+  constructor(storage: SQLiteStorage, startDate: Date) {
     if (!storage) {
       throw new Error('Storage instance is required');
     }
     this.storage = storage;
+    this.startDate = startDate;
   }
 
   async fetch(): Promise<void> {
     const lastFetchDate = await this.storage?.getLastFetchDate(this.getSourceName(), this.getAccountName());
-    const since = lastFetchDate || this.START_DATE;
+    const since = lastFetchDate || this.startDate;
     this.logger.info(`Fetching ${this.getSourceName()} content for ${this.getAccountName()} since ${since?.toISOString()}`);
 
     try {

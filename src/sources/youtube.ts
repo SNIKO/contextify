@@ -19,8 +19,8 @@ export class YouTubeDataSource extends Fetcher {
   private youtube: youtube_v3.Youtube;
   protected logger: Logger;
 
-  constructor(apiKey: string, accountName: string, storage: SQLiteStorage) {
-    super(storage);
+  constructor(apiKey: string, accountName: string, storage: SQLiteStorage, startDate: Date) {
+    super(storage, startDate);
     this.accountName = accountName;
     this.youtube = google.youtube({ version: 'v3', auth: apiKey });
     this.logger = new Logger(`YouTube:${accountName}`);

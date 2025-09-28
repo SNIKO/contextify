@@ -25,7 +25,7 @@ export class DataIngestionService {
         return;
       }
 
-      const source = new YouTubeDataSource(apiKey, account, this.storage);
+      const source = new YouTubeDataSource(apiKey, account, this.storage, new Date('2024-01-01'));
       this.dataSources.push(source);
       logger.info(`Added data source ${source.getSourceName()}:${source.getAccountName()}`);
     });

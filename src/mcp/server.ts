@@ -2,8 +2,8 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { GetPostsTool } from './tools/get-posts.js';
-import { GetTopicsTool } from './tools/get-topics.js';
+import { GetTopicContentTool } from './tools/get-topic-content.js';
+import { ListTopics } from './tools/list-topics.js';
 import { Logger } from '../utils/logger.js';
 import { SQLiteStorage } from '../storage/sqlite.js';
 
@@ -33,8 +33,8 @@ class CryptoInsightsMcpServer {
     });
 
     const tools = [
-      new GetPostsTool(this.storage),
-      new GetTopicsTool(this.storage)
+      new ListTopics(this.storage),
+      new GetTopicContentTool(this.storage)
     ];
     
     tools.forEach(tool => tool.register(server));   
