@@ -11,7 +11,7 @@ export interface RawContentRecord {
 }
 
 export interface TopicRecord {
-  id: string;
+  id: number;
   processedContentId: string;
   name: string;
   content: string;

@@ -64,7 +64,7 @@ export class SQLiteStorage {
         );
 
         CREATE TABLE IF NOT EXISTS topics (
-          id TEXT PRIMARY KEY,
+          id INTEGER PRIMARY KEY,
           raw_content_id TEXT NOT NULL,
           name TEXT NOT NULL,
           content TEXT NOT NULL,
@@ -201,8 +201,8 @@ export class SQLiteStorage {
 
     const deleteStmt = database.prepare(`DELETE FROM topics WHERE raw_content_id = ?`);
     const insertStmt = database.prepare(`
-      INSERT INTO topics (id, raw_content_id, name, content, keywords, generated_at, generated_by_model)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO topics (raw_content_id, name, content, keywords, generated_at, generated_by_model)
+      VALUES (?, ?, ?, ?, ?, ?)
     `);
 
     const transaction = database.transaction(() => {
@@ -212,7 +212,7 @@ export class SQLiteStorage {
           ? topic.generatedAt.toISOString()
           : topic.generatedAt || new Date().toISOString();
 
-        insertStmt.run(randomUUID(), rawContentId, topic.name, topic.content, topic.keywords, generatedAt, topic.generatedByModel);
+        insertStmt.run(rawContentId, topic.name, topic.content, topic.keywords, generatedAt, topic.generatedByModel);
       }
     });
 
@@ -273,7 +273,7 @@ export class SQLiteStorage {
   }
 
   getTopicsByDateRange(days: number, accountFilter?: string): Array<{
-    topicId: string;
+    topicId: number;
     topicName: string;
     account: string;
     source: string;
@@ -312,7 +312,7 @@ export class SQLiteStorage {
       `;
 
     const rows = this.allQuery<{
-      topic_id: string;
+      topic_id: number;
       topic_name: string;
       account: string;
       source: string;
