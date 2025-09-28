@@ -272,6 +272,65 @@ export class SQLiteStorage {
     );
   }
 
+  getTopicsByDateRange(days: number, accountFilter?: string): Array<{
+    topicId: string;
+    topicName: string;
+    account: string;
+    source: string;
+    publishDate: Date;
+    subscriberCount: number | null;
+  }> {
+    const windowStart = new Date(Date.now() - Math.max(days, 1) * 24 * 60 * 60 * 1000);
+    const normalizedAccount = accountFilter ? accountFilter.replace(/^@+/, '').toLowerCase() : null;
+
+    let query = `
+        SELECT
+          t.id AS topic_id,
+          t.name AS topic_name,
+          rc.account,
+          rc.source,
+          rc.publish_date,
+          cm.subscriber_count
+        FROM topics t
+        INNER JOIN raw_content rc ON rc.id = t.raw_content_id
+        LEFT JOIN channel_metadata cm
+          ON cm.account_name = rc.account AND cm.source = rc.source
+        WHERE rc.publish_date >= ?
+      `;
+
+    const params: unknown[] = [windowStart.toISOString()];
+
+    if (normalizedAccount) {
+      query += `
+        AND LOWER(ltrim(rc.account, '@')) = ?
+      `;
+      params.push(normalizedAccount);
+    }
+
+    query += `
+        ORDER BY rc.publish_date DESC, t.generated_at DESC
+      `;
+
+    const rows = this.allQuery<{
+      topic_id: string;
+      topic_name: string;
+      account: string;
+      source: string;
+      publish_date: string;
+      channel_title: string | null;
+      subscriber_count: number | null;
+    }>(query, params);
+
+    return rows.map(row => ({
+      topicId: row.topic_id,
+      topicName: row.topic_name,
+      account: row.account,
+      source: row.source,
+      publishDate: new Date(row.publish_date),
+      subscriberCount: row.subscriber_count ?? null
+    }));
+  }
+
   private resetInFlightRawContent(): void {
     const database = this.ensureDb();
     const { changes } = database

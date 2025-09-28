@@ -68,6 +68,7 @@ export abstract class BaseProcessorService<Task> {
         task = await this.claimContent(workerId);
 
         if (!task) {
+          this.logger.debug(`[Worker ${workerId}] Nothing to process, sleeping ${BaseProcessorService.IDLE_DELAY_MS} milliseconds`)
           await this.sleep(BaseProcessorService.IDLE_DELAY_MS);
           continue;
         }
